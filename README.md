@@ -23,6 +23,7 @@ Bot that fetches data from openweather.com using its API for personal/specific c
 
 8. Get group and topic ID. (as a homework find it yourself)
 9. To make bot **"private"** you need to insert those IDs in `weatherbot.py` script at `ALLOWED_CHAT_ID` and `ALLOWED_TOPIC_ID`. That way **only your** topic can work with that bot. Insert `BOT_TOKEN` and `WEATHER_API_KEY`  also.
-10. Launch bot `py weatherbot.py`. In your topic input city name.
+10. Install modules `pip install -r requirements.txt`
+11. Launch bot `py weatherbot.py`. In your topic input city name.
 
     ![](images/image_5.png)

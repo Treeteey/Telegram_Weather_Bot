@@ -1,0 +1,4 @@
+python-telegram-bot  # For interacting with the Telegram Bot API
+requests          # For making HTTP requests to weather APIs
+python-dotenv      # For managing environment variables
+"python-telegram-bot[job-queue]"
