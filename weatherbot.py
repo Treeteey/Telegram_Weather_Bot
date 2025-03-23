@@ -26,7 +26,7 @@ async def send_static_buttons(context: CallbackContext) -> None:
     keyboard = [
         [InlineKeyboardButton("🌤 1 день", callback_data="one_day"),
          InlineKeyboardButton("⛅ 3 дня", callback_data="three_days")],
-        [InlineKeyboardButton("☀ 1 неделя", callback_data="one_week")]
+        [InlineKeyboardButton("☀ 5 дней", callback_data="five_days")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -50,8 +50,29 @@ async def send_static_buttons(context: CallbackContext) -> None:
     context.bot_data["buttons_message_id"] = message.message_id
 
 
+# Function to send weather message
+async def send_weather_message(context: CallbackContext, message_text: str) -> None:
+    # Delete old weather message
+    if "weather_message_id" in context.bot_data:
+        try:
+            await context.bot.delete_message(chat_id=ALLOWED_CHAT_ID, message_id=context.bot_data["weather_message_id"])
+        except:
+            pass  # Ignore if already deleted
+
+    # Send new weather message
+    message = await context.bot.send_message(
+        chat_id=ALLOWED_CHAT_ID,
+        message_thread_id=ALLOWED_TOPIC_ID,
+        text=message_text
+    )
+    context.bot_data["weather_message_id"] = message.message_id
+
+    # Ensure buttons are last
+    await send_static_buttons(context)
+
+
 # Function to fetch weather data
-async def send_weather(update: Update, context: CallbackContext, city: str, days: int) -> None:
+async def get_weather_data(context: CallbackContext, city: str, days: int) -> str:
     if days == 1:
         url = f"{CURRENT_WEATHER_URL}?q={city}&appid={WEATHER_API_KEY}&units=metric&lang=ru"
         response = requests.get(url)
@@ -63,7 +84,7 @@ async def send_weather(update: Update, context: CallbackContext, city: str, days
             humidity = data["main"]["humidity"]
             wind_speed = data["wind"]["speed"]
             
-            message_text = (
+            return (
                 f"📍 Город: {city}\n"
                 f"🌡 Температура: {temp}°C (Ощущается как {feels_like}°C)\n"
                 f"💨 Ветер: {wind_speed} м/с\n"
@@ -71,7 +92,7 @@ async def send_weather(update: Update, context: CallbackContext, city: str, days
                 f"☁️ Состояние: {weather_desc}"
             )
         else:
-            message_text = "⚠️ Город не найден."
+            return "⚠️ Город не найден."
     
     else:  # Multi-day forecast
         url = f"{FORECAST_WEATHER_URL}?q={city}&appid={WEATHER_API_KEY}&units=metric&lang=ru"
@@ -81,29 +102,29 @@ async def send_weather(update: Update, context: CallbackContext, city: str, days
             forecasts = data["list"]
             message_text = f"📆 Прогноз погоды для {city}:\n"
 
-            for i in range(0, days * 8, 8):  # 8 timestamps per day
-                entry = forecasts[i]
+            # Получаем уникальные даты (максимум 5 дней)
+            dates_seen = set()
+            for entry in forecasts:
                 date = entry["dt_txt"].split(" ")[0]
-                temp = entry["main"]["temp"]
-                condition = entry["weather"][0]["description"].capitalize()
+                if date not in dates_seen and len(dates_seen) < days:
+                    dates_seen.add(date)
+                    temp = entry["main"]["temp"]
+                    feels_like = entry["main"]["feels_like"]
+                    humidity = entry["main"]["humidity"]
+                    wind_speed = entry["wind"]["speed"]
+                    condition = entry["weather"][0]["description"].capitalize()
 
-                message_text += f"\n📅 {date}: {temp}°C, {condition}"
+                    message_text += (
+                        f"\n📅 {date}:\n"
+                        f"🌡 Температура: {temp}°C (Ощущается как {feels_like}°C)\n"
+                        f"💨 Ветер: {wind_speed} м/с\n"
+                        f"💧 Влажность: {humidity}%\n"
+                        f"☁️ Состояние: {condition}\n"
+                    )
+
+            return message_text
         else:
-            message_text = "⚠️ Ошибка получения прогноза."
-
-    # Delete old weather message
-    if "weather_message_id" in context.bot_data:
-        try:
-            await context.bot.delete_message(chat_id=ALLOWED_CHAT_ID, message_id=context.bot_data["weather_message_id"])
-        except:
-            pass  # Ignore if already deleted
-
-    # Send new weather message
-    message = await update.message.reply_text(message_text)
-    context.bot_data["weather_message_id"] = message.message_id
-
-    # Ensure buttons are last
-    await send_static_buttons(context)
+            return "⚠️ Ошибка получения прогноза."
 
 
 # Function to handle city input and clean up old messages
@@ -125,7 +146,8 @@ async def get_city(update: Update, context: CallbackContext) -> None:
     context.user_data["city"] = city
 
     # Fetch default 1-day weather
-    await send_weather(update, context, city, days=1)
+    weather_text = await get_weather_data(context, city, days=1)
+    await send_weather_message(context, weather_text)
 
 
 # Function to handle button clicks
@@ -137,17 +159,22 @@ async def button_click(update: Update, context: CallbackContext) -> None:
         return  # Ignore messages outside the allowed topic
 
     if "city" not in context.user_data:
-        await query.message.reply_text("❗ Сначала введите название города.")
+        await context.bot.send_message(
+            chat_id=ALLOWED_CHAT_ID,
+            message_thread_id=ALLOWED_TOPIC_ID,
+            text="❗ Сначала введите название города."
+        )
         return
 
     city = context.user_data["city"]
+    days = {
+        "one_day": 1,
+        "three_days": 3,
+        "five_days": 5
+    }.get(query.data, 1)
 
-    if query.data == "one_day":
-        await send_weather(update, context, city, days=1)
-    elif query.data == "three_days":
-        await send_weather(update, context, city, days=3)
-    elif query.data == "one_week":
-        await send_weather(update, context, city, days=7)
+    weather_text = await get_weather_data(context, city, days)
+    await send_weather_message(context, weather_text)
 
 
 # Main function

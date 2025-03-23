@@ -1,0 +1,7 @@
+@echo off
+set BOT_TOKEN=your_bot_token_here
+set WEATHER_API_KEY=your_weather_api_key_here
+set ALLOWED_CHAT_ID=your_chat_id_here
+set ALLOWED_TOPIC_ID=your_topic_id_here
+python weatherbot.py
+pause 

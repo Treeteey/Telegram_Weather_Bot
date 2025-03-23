@@ -27,4 +27,8 @@ var/
 
 # Docker
 .docker/
-docker-compose.override.yml 
+docker-compose.override.yml
+
+# Batch files with sensitive data
+start_bot.bat
+*.bat 

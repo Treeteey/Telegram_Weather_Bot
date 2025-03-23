@@ -84,3 +84,72 @@ chmod +x setup.sh
 5. Настроит необходимые права доступа
 
 После установки следуйте инструкциям, которые появятся на экране.
+
+## Для разработчиков
+
+### Обновление файлов из репозитория
+
+Если вам нужно обновить только измененные файлы из репозитория (например, `weatherbot.py`):
+
+```bash
+# Создаем временную директорию и клонируем репозиторий
+git clone https://github.com/Treeteey/Telegram_Weather_Bot.git temp_update
+
+# Копируем только нужный файл
+cp temp_update/weatherbot.py .
+
+# Удаляем временную директорию
+rm -rf temp_update
+
+# Если вы изменили weatherbot.py, нужно пересобрать Docker образ
+```
+
+> ⚠️ **Важно**: 
+> - Ваш файл `.env` с конфиденциальными данными останется нетронутым, так как мы используем отдельную временную директорию
+> - Если вы внесли свои изменения в `weatherbot.py`, сначала сделайте их резервную копию:
+>   ```bash
+>   cp weatherbot.py weatherbot.py.backup
+>   ```
+> - После обновления можно сравнить файлы:
+>   ```bash
+>   diff weatherbot.py weatherbot.py.backup
+>   ```
+
+### Управление Docker-контейнером
+
+Для пересборки и перезапуска контейнера:
+
+```bash
+# Останавливаем текущий контейнер
+docker stop weather-bot
+
+# Удаляем контейнер
+docker rm weather-bot
+
+# Удаляем образ
+docker rmi weather-bot
+
+# Пересобираем и запускаем заново
+./docker/run.sh
+```
+
+Полезные команды для отладки:
+```bash
+# Просмотр логов в реальном времени
+docker logs -f weather-bot
+
+# Просмотр статуса контейнера
+docker ps -a | grep weather-bot
+
+# Вход в работающий контейнер для отладки
+docker exec -it weather-bot /bin/bash
+```
+
+Если у вас возникла ошибка "pull access denied":
+```bash
+# Войдите в Docker Hub (если нужно)
+docker login
+
+# Или соберите образ локально без попытки загрузки
+docker build -t weather-bot -f docker/Dockerfile .
+```
