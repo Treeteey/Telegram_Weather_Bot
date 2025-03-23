@@ -17,11 +17,31 @@ if not all([BOT_TOKEN, WEATHER_API_KEY, ALLOWED_CHAT_ID, ALLOWED_TOPIC_ID]):
 CURRENT_WEATHER_URL = "http://api.openweathermap.org/data/2.5/weather"
 FORECAST_WEATHER_URL = "https://api.openweathermap.org/data/2.5/forecast"
 
+# Погодные эмодзи
+WEATHER_EMOJI = {
+    "01d": "☀️",  # ясно
+    "01n": "🌙",  # ясно ночью
+    "02d": "⛅",  # малооблачно
+    "02n": "☁️",  # малооблачно ночью
+    "03d": "☁️",  # облачно
+    "03n": "☁️",  # облачно ночью
+    "04d": "☁️",  # пасмурно
+    "04n": "☁️",  # пасмурно ночью
+    "09d": "🌧",  # дождь
+    "09n": "🌧",  # дождь ночью
+    "10d": "🌦",  # дождь с прояснениями
+    "10n": "🌧",  # дождь ночью
+    "11d": "⛈",  # гроза
+    "11n": "⛈",  # гроза ночью
+    "13d": "🌨",  # снег
+    "13n": "🌨",  # снег ночью
+    "50d": "🌫",  # туман
+    "50n": "🌫",  # туман ночью
+}
+
 # Logging setup
 logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO)
 
-
-# Function to create static buttons
 async def send_static_buttons(context: CallbackContext) -> None:
     keyboard = [
         [InlineKeyboardButton("🌤 1 день", callback_data="one_day"),
@@ -30,72 +50,44 @@ async def send_static_buttons(context: CallbackContext) -> None:
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    # Remove previous button message
     if "buttons_message_id" in context.bot_data:
         try:
             await context.bot.delete_message(chat_id=ALLOWED_CHAT_ID, message_id=context.bot_data["buttons_message_id"])
-        except:
-            pass  # Ignore if message was already deleted
+        except: pass
 
-    # Send new button message
     message = await context.bot.send_message(
         chat_id=ALLOWED_CHAT_ID,
         message_thread_id=ALLOWED_TOPIC_ID,
-        text="🔘 **Выберите прогноз:**",
-        reply_markup=reply_markup,
-        parse_mode="Markdown"
+        text="🔘 Выберите прогноз:",
+        reply_markup=reply_markup
     )
-
-    # Store the new buttons message ID
     context.bot_data["buttons_message_id"] = message.message_id
-
-
-# Function to send weather message
-async def send_weather_message(context: CallbackContext, message_text: str) -> None:
-    # Delete old weather message
-    if "weather_message_id" in context.bot_data:
-        try:
-            await context.bot.delete_message(chat_id=ALLOWED_CHAT_ID, message_id=context.bot_data["weather_message_id"])
-        except:
-            pass  # Ignore if already deleted
-
-    # Send new weather message
-    message = await context.bot.send_message(
-        chat_id=ALLOWED_CHAT_ID,
-        message_thread_id=ALLOWED_TOPIC_ID,
-        text=message_text
-    )
-    context.bot_data["weather_message_id"] = message.message_id
-
-    # Ensure buttons are last
-    await send_static_buttons(context)
-
 
 # Function to format temperature table for single day
 def format_hourly_table(forecasts, date):
-    table = f"```\n📅 {date}\n"
-    table += "┌──────┬────────┬──────┬─────────┐\n"
-    table += "│ Час  │ t°C/°C*│ м/с  │ Погода  │\n"
-    table += "├──────┼────────┼──────┼─────────┤\n"
+    # Преобразуем дату в формат дд-мм-гггг
+    date_parts = date.split("-")
+    formatted_date = f"{date_parts[2]}-{date_parts[1]}-{date_parts[0]}"
+    
+    rows = []
+    rows.append(f"📅 {formatted_date}\n")
     
     for entry in forecasts:
         if entry["dt_txt"].split(" ")[0] == date:
             hour = entry["dt_txt"].split(" ")[1][:5]
             temp = entry["main"]["temp"]
-            feels = entry["main"]["feels_like"]
             wind = entry["wind"]["speed"]
-            desc = entry["weather"][0]["description"].capitalize()[:8]
+            icon = entry["weather"][0]["icon"]
+            emoji = WEATHER_EMOJI.get(icon, "❓")
+            desc = entry["weather"][0]["description"].capitalize()
             
-            table += f"│ {hour} │ {temp:>2.0f}/{feels:>2.0f} │ {wind:>4.1f} │ {desc:<7} │\n"
+            row = f"{hour} - {temp:>2.0f}°C, {wind:.1f} м/с, {emoji} {desc}\n"
+            rows.append(row)
     
-    table += "└──────┴────────┴──────┴─────────┘\n"
-    table += "* Ощущается как\n```"
-    return table
-
+    return "".join(rows)
 
 # Function to format multi-day temperature table
 def format_multiday_table(forecasts, days):
-    # Получаем уникальные даты и часы
     dates = []
     hours_data = {}
     
@@ -114,47 +106,43 @@ def format_multiday_table(forecasts, days):
     if not dates:
         return "Нет данных для отображения"
 
-    # Форматируем заголовок таблицы
-    table = "```\n"
-    table += "┌──────┬" + "─" * (9 * len(dates)) + "┐\n"
-    table += "│ Час  │" + "".join(f" {date[5:]} " + " " * 4 for date in dates) + "│\n"
-    table += "├──────┬" + "─" * (9 * len(dates)) + "┤\n"
-
-    # Добавляем данные по часам
-    for hour in sorted(hours_data.keys()):
-        table += f"│  {hour:02d}  │"
-        for date in dates:
+    rows = []
+    
+    for date in dates:
+        # Преобразуем дату в формат дд-мм-гггг
+        date_parts = date.split("-")
+        formatted_date = f"{date_parts[2]}-{date_parts[1]}-{date_parts[0]}"
+        
+        rows.append(f"\n📅 {formatted_date}\n")
+        for hour in sorted(hours_data.keys()):
             if date in hours_data[hour]:
                 entry = hours_data[hour][date]
                 temp = entry["main"]["temp"]
-                table += f" {temp:>2.0f}°C " + " " * 3
-            else:
-                table += " --- " + " " * 3
-        table += "│\n"
-
-    # Закрываем таблицу
-    table += "└──────┴" + "─" * (9 * len(dates)) + "┘\n"
+                wind = entry["wind"]["speed"]
+                icon = entry["weather"][0]["icon"]
+                emoji = WEATHER_EMOJI.get(icon, "❓")
+                desc = entry["weather"][0]["description"].capitalize()
+                row = f"{hour:02d}:00 - {temp:>2.0f}°C, {wind:.1f} м/с, {emoji} {desc}\n"
+                rows.append(row)
     
-    # Добавляем легенду с дополнительной информацией
-    table += "\nПодробная информация для каждого дня:\n"
-    for date in dates:
-        noon_data = next((entry for entry in forecasts 
-                         if entry["dt_txt"].split(" ")[0] == date 
-                         and entry["dt_txt"].split(" ")[1].startswith("12")), None)
-        if noon_data:
-            desc = noon_data["weather"][0]["description"].capitalize()
-            wind = noon_data["wind"]["speed"]
-            humidity = noon_data["main"]["humidity"]
-            table += f"\n{date[5:]}: {desc}, ветер {wind} м/с, влажность {humidity}%"
-    
-    table += "```"
-    return table
+    return "".join(rows)
 
+async def send_weather_message(context: CallbackContext, message_text: str) -> None:
+    if "weather_message_id" in context.bot_data:
+        try:
+            await context.bot.delete_message(chat_id=ALLOWED_CHAT_ID, message_id=context.bot_data["weather_message_id"])
+        except: pass
 
-# Function to fetch weather data
+    message = await context.bot.send_message(
+        chat_id=ALLOWED_CHAT_ID,
+        message_thread_id=ALLOWED_TOPIC_ID,
+        text=message_text
+    )
+    context.bot_data["weather_message_id"] = message.message_id
+    await send_static_buttons(context)
+
 async def get_weather_data(context: CallbackContext, city: str, days: int) -> str:
     if days == 1:
-        # Для одного дня используем оба API для текущей погоды и почасового прогноза
         current_url = f"{CURRENT_WEATHER_URL}?q={city}&appid={WEATHER_API_KEY}&units=metric&lang=ru"
         forecast_url = f"{FORECAST_WEATHER_URL}?q={city}&appid={WEATHER_API_KEY}&units=metric&lang=ru"
         
@@ -165,14 +153,13 @@ async def get_weather_data(context: CallbackContext, city: str, days: int) -> st
             current_data = current_response.json()
             forecast_data = forecast_response.json()
             
-            # Текущая погода
             weather_desc = current_data["weather"][0]["description"].capitalize()
             temp = current_data["main"]["temp"]
             feels_like = current_data["main"]["feels_like"]
             humidity = current_data["main"]["humidity"]
             wind_speed = current_data["wind"]["speed"]
             
-            message = (
+            header = (
                 f"📍 Город: {city}\n"
                 f"🌡 Сейчас: {temp}°C (Ощущается как {feels_like}°C)\n"
                 f"💨 Ветер: {wind_speed} м/с\n"
@@ -181,11 +168,8 @@ async def get_weather_data(context: CallbackContext, city: str, days: int) -> st
                 "Прогноз на сегодня:\n"
             )
             
-            # Добавляем почасовой прогноз
             today = forecast_data["list"][0]["dt_txt"].split(" ")[0]
-            message += format_hourly_table(forecast_data["list"], today)
-            
-            return message
+            return header + format_hourly_table(forecast_data["list"], today)
         else:
             return "⚠️ Город не найден."
     
@@ -194,12 +178,10 @@ async def get_weather_data(context: CallbackContext, city: str, days: int) -> st
         response = requests.get(url)
         if response.status_code == 200:
             data = response.json()
-            message = f"📆 Прогноз погоды для {city}:\n\n"
-            message += format_multiday_table(data["list"], days)
-            return message
+            header = f"📆 Прогноз погоды для {city}:\n\n"
+            return header + format_multiday_table(data["list"], days)
         else:
             return "⚠️ Ошибка получения прогноза."
-
 
 # Function to handle city input and clean up old messages
 async def get_city(update: Update, context: CallbackContext) -> None:
