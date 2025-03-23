@@ -1,13 +1,17 @@
 import logging
 import requests
+import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, CallbackContext
 
 # Bot configuration
-BOT_TOKEN = ""
-WEATHER_API_KEY = ""
-ALLOWED_CHAT_ID = 0  # Your supergroup chat ID
-ALLOWED_TOPIC_ID = 0  # Your Weather Bot topic ID
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
+ALLOWED_CHAT_ID = int(os.getenv("ALLOWED_CHAT_ID", "0"))
+ALLOWED_TOPIC_ID = int(os.getenv("ALLOWED_TOPIC_ID", "0"))
+
+if not all([BOT_TOKEN, WEATHER_API_KEY, ALLOWED_CHAT_ID, ALLOWED_TOPIC_ID]):
+    raise ValueError("Не все необходимые переменные окружения установлены")
 
 # OpenWeatherMap URLs
 CURRENT_WEATHER_URL = "http://api.openweathermap.org/data/2.5/weather"

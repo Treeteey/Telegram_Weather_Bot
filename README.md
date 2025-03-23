@@ -27,3 +27,36 @@ Bot that fetches data from openweather.com using its API for personal/specific c
 11. Launch bot `py weatherbot.py`. In your topic input city name.
 
     ![](images/image_5.png)
+
+## Запуск в Docker
+
+1. Убедитесь, что у вас установлен Docker и Docker Compose
+2. Скопируйте файл с примером переменных окружения:
+   ```bash
+   cp .env.example .env
+   ```
+3. Отредактируйте файл `.env`, вставив в него ваши данные:
+   - `BOT_TOKEN` - токен вашего бота
+   - `WEATHER_API_KEY` - ключ API OpenWeatherMap
+   - `ALLOWED_CHAT_ID` - ID вашей группы
+   - `ALLOWED_TOPIC_ID` - ID темы в группе
+4. Сделайте скрипт запуска исполняемым:
+   ```bash
+   chmod +x docker/run.sh
+   ```
+5. Запустите бота:
+   ```bash
+   ./docker/run.sh
+   ```
+
+Бот будет запущен в Docker-контейнере и автоматически перезапустится при перезагрузке сервера.
+
+Для остановки бота используйте:
+```bash
+docker stop weather-bot
+```
+
+Для просмотра логов:
+```bash
+docker logs weather-bot
+```
