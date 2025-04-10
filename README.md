@@ -28,23 +28,28 @@ Bot that fetches data from openweather.com using its API for personal/specific c
 
     ![](images/image_5.png)
 
+<br><br><br><br>
+
 ## Запуск в Docker
 
-1. Убедитесь, что у вас установлен Docker и Docker Compose
-2. Скопируйте файл с примером переменных окружения:
+1. ``` 
+   curl -O https://github.com/Treeteey/Telegram_Weather_Bot.git 
+   ```
+2. Убедитесь, что у вас установлен Docker и Docker Compose
+3. Скопируйте файл с примером переменных окружения:
    ```bash
    cp .env.example .env
    ```
-3. Отредактируйте файл `.env`, вставив в него ваши данные:
+4. Отредактируйте файл `.env`, вставив в него ваши данные:
    - `BOT_TOKEN` - токен вашего бота
    - `WEATHER_API_KEY` - ключ API OpenWeatherMap
    - `ALLOWED_CHAT_ID` - ID вашей группы
    - `ALLOWED_TOPIC_ID` - ID темы в группе
-4. Сделайте скрипт запуска исполняемым:
+5. Сделайте скрипт запуска исполняемым:
    ```bash
    chmod +x docker/run.sh
    ```
-5. Запустите бота:
+6. Запустите бота:
    ```bash
    ./docker/run.sh
    ```
@@ -60,6 +65,7 @@ docker stop weather-bot
 ```bash
 docker logs weather-bot
 ```
+<br><br><br><br>
 
 ## Быстрая установка
 
@@ -85,8 +91,12 @@ chmod +x setup.sh
 5. Настроит необходимые права доступа
 
 После установки следуйте инструкциям, которые появятся на экране.
+- Обнови файл `.env` - добавь свои ключи и токены от TelegramBot, WeatherAPIKey, chat_id, topic_id
+- Запусти `./docker/run.sh` 
 
-## Для разработчиков
+<br><br><br><br>
+
+## Для личного пользования - подсказки
 
 ### Обновление файлов из репозитория
 
