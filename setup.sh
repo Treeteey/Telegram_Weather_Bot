@@ -55,15 +55,28 @@ if [ ! -f "weatherbot.py" ]; then
     # Если мы не в директории проекта, клонируем репозиторий
     echo "Клонирование репозитория..."
     git clone https://github.com/Treeteey/Telegram_Weather_Bot.git temp_bot
-    cd temp_bot
+    
+    # Копируем файлы из temp_bot в текущую директорию
+    echo "Копирование файлов..."
+    cp -r temp_bot/* .
+    
+    # Делаем скрипт setup.sh исполняемым
+    chmod +x setup.sh
+    
+    # Удаляем временную директорию
+    rm -rf temp_bot
 else
     echo "Вы уже находитесь в директории проекта."
 fi
 
 # Создаем .env файл из примера
 if [ ! -f .env ]; then
-    cp .env.example .env
-    echo -e "${RED}Ошибка: Заполни файл .env своими данными!${NC}"
+    echo -e "${RED}Ошибка: Файл .env не найден!${NC}"
+    echo -e "${YELLOW}Создайте файл .env со следующими переменными:${NC}"
+    echo -e "BOT_TOKEN=your_telegram_bot_token"
+    echo -e "WEATHER_API_KEY=your_openweathermap_api_key"
+    echo -e "ALLOWED_CHAT_ID=your_telegram_chat_id"
+    echo -e "ALLOWED_TOPIC_ID=your_telegram_topic_id"
     echo
     exit 1
 fi
