@@ -72,7 +72,7 @@ docker logs weather-bot
 
 1. Скачайте репозиторий:
    ```bash
-   git clone https://github.com/Treeteey/Telegram_Weather_Bot.git
+   curl -o setup.sh https://raw.githubusercontent.com/Treeteey/Telegram_Weather_Bot/refs/heads/main/setup.sh
    cd Telegram_Weather_Bot
    ```
 

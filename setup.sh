@@ -62,12 +62,8 @@ fi
 
 # Создаем .env файл из примера
 if [ ! -f .env ]; then
-    echo -e "${RED}Ошибка: Файл .env не найден!${NC}"
-    echo -e "${YELLOW}Создайте файл .env со следующими переменными:${NC}"
-    echo -e "BOT_TOKEN=your_telegram_bot_token"
-    echo -e "WEATHER_API_KEY=your_openweathermap_api_key"
-    echo -e "ALLOWED_CHAT_ID=your_telegram_chat_id"
-    echo -e "ALLOWED_TOPIC_ID=your_telegram_topic_id"
+    cp .env.example .env
+    echo -e "${RED}Ошибка: Заполни файл .env своими данными!${NC}"
     echo
     exit 1
 fi
