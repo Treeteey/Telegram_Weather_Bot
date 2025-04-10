@@ -50,12 +50,15 @@ if ! command -v docker &> /dev/null; then
     echo "⚠️ Для применения изменений группы docker, пожалуйста, перезагрузите систему"
 fi
 
-# Клонируем репозиторий
-echo "Клонирование репозитория..."
-git clone https://github.com/Treeteey/Telegram_Weather_Bot.git temp_bot
-# cp -r temp_bot/* .
-# rm -rf temp_bot
-cd temp_bot
+# Проверяем, находимся ли мы уже в директории проекта
+if [ ! -f "weatherbot.py" ]; then
+    # Если мы не в директории проекта, клонируем репозиторий
+    echo "Клонирование репозитория..."
+    git clone https://github.com/Treeteey/Telegram_Weather_Bot.git temp_bot
+    cd temp_bot
+else
+    echo "Вы уже находитесь в директории проекта."
+fi
 
 # Создаем .env файл из примера
 if [ ! -f .env ]; then
@@ -65,6 +68,7 @@ if [ ! -f .env ]; then
     echo -e "WEATHER_API_KEY=your_openweathermap_api_key"
     echo -e "ALLOWED_CHAT_ID=your_telegram_chat_id"
     echo -e "ALLOWED_TOPIC_ID=your_telegram_topic_id"
+    echo
     exit 1
 fi
 
@@ -102,12 +106,11 @@ fi
 # Делаем скрипт запуска исполняемым
 chmod +x docker/run.sh
 
-echo -e "${GREEN}Все проверки пройдены успешно!${NC}"
-echo -e "${GREEN}Запуск бота...${NC}"
-
 # Запускаем бота
+echo -e "${GREEN}Запуск бота...${NC}"
 ./docker/run.sh
 
-echo -e "${GREEN}Бот успешно запущен!${NC}"
+echo -e "${GREEN}Установка завершена!${NC}"
+echo -e "${YELLOW}Бот запущен в фоновом режиме.${NC}"
 echo -e "${YELLOW}Для остановки бота используйте: docker stop weather-bot${NC}"
 echo -e "${YELLOW}Для просмотра логов используйте: docker logs weather-bot${NC}" 
