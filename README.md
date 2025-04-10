@@ -69,6 +69,7 @@ docker logs weather-bot
 # Скачиваем скрипт установки
 curl -O https://raw.githubusercontent.com/Treeteey/Telegram_Weather_Bot/main/setup.sh
 
+
 # Делаем скрипт исполняемым
 chmod +x setup.sh
 

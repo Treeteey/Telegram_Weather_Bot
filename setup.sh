@@ -35,7 +35,7 @@ if ! command -v docker &> /dev/null; then
         sudo yum-config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
         sudo yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
     else
-        echo "❌ Не удалось определить тип системы для установки Docker"
+        echo "Не удалось определить тип системы для установки Docker"
         exit 1
     fi
     
@@ -45,16 +45,17 @@ if ! command -v docker &> /dev/null; then
 fi
 
 # Клонируем репозиторий
-echo "📥 Клонирование репозитория..."
+echo "Клонирование репозитория..."
 git clone https://github.com/Treeteey/Telegram_Weather_Bot.git temp_bot
-cp -r temp_bot/* .
-rm -rf temp_bot
+# cp -r temp_bot/* .
+# rm -rf temp_bot
+cd temp_bot
 
 # Создаем .env файл из примера
 if [ ! -f .env ]; then
-    echo "📝 Создание файла .env..."
+    echo "Создание файла .env..."
     cp .env.example .env
-    echo "⚠️ Пожалуйста, отредактируйте файл .env и добавьте в него ваши данные"
+    echo "Пожалуйста, отредактируйте файл .env и добавьте в него ваши данные"
 fi
 
 # Делаем скрипт запуска исполняемым
