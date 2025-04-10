@@ -65,34 +65,30 @@ docker stop weather-bot
 ```bash
 docker logs weather-bot
 ```
+
 <br><br><br><br>
 
 ## Быстрая установка
 
-Для автоматической установки бота и всех зависимостей выполните следующие команды:
+1. Скачайте репозиторий:
+   ```bash
+   git clone https://github.com/Treeteey/Telegram_Weather_Bot.git
+   cd Telegram_Weather_Bot
+   ```
 
-```bash
-# Скачиваем скрипт установки
-curl -O https://raw.githubusercontent.com/Treeteey/Telegram_Weather_Bot/main/setup.sh
+2. Создайте файл `.env` в корневой директории проекта со следующими переменными:
+   ```
+   BOT_TOKEN=your_telegram_bot_token
+   WEATHER_API_KEY=your_openweathermap_api_key
+   ALLOWED_CHAT_ID=your_telegram_chat_id
+   ALLOWED_TOPIC_ID=your_telegram_topic_id
+   ```
 
-
-# Делаем скрипт исполняемым
-chmod +x setup.sh
-
-# Запускаем установку
-./setup.sh
-```
-
-Скрипт автоматически:
-1. Установит Git (если не установлен)
-2. Установит Docker (если не установлен)
-3. Скачает все файлы бота
-4. Создаст файл .env из примера
-5. Настроит необходимые права доступа
-
-После установки следуйте инструкциям, которые появятся на экране.
-- Обнови файл `.env` - добавь свои ключи и токены от TelegramBot, WeatherAPIKey, chat_id, topic_id
-- Запусти `./docker/run.sh` 
+3. Запустите скрипт установки:
+   ```bash
+   chmod +x setup.sh
+   ./setup.sh
+   ```
 
 <br><br><br><br>
 
@@ -164,3 +160,40 @@ docker login
 # Или соберите образ локально без попытки загрузки
 docker build -t weather-bot -f docker/Dockerfile .
 ```
+
+## Возможности
+
+- Получение текущей погоды в любом городе
+- Прогноз погоды на 1, 3 или 5 дней
+- Почасовая информация о температуре, ветре и состоянии погоды
+- Визуальное отображение погодных условий с помощью эмодзи
+
+## Использование
+
+1. Отправьте боту название города
+2. Выберите период прогноза (1, 3 или 5 дней)
+3. Получите подробный прогноз погоды
+
+## Для разработчиков
+
+### Структура проекта
+
+- `weatherbot.py` - основной код бота
+- `docker/` - файлы для Docker
+- `docker/Dockerfile` - инструкции для сборки Docker-образа
+- `docker/run.sh` - скрипт для запуска бота в Docker
+- `setup.sh` - скрипт для проверки и запуска бота
+- `requirements.txt` - зависимости Python
+
+### Обновление файлов
+
+1. Внесите изменения в код
+2. Пересоберите Docker-образ:
+   ```
+   cd docker
+   ./run.sh
+   ```
+
+## Лицензия
+
+MIT
