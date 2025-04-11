@@ -72,12 +72,14 @@ docker logs weather-bot
 
 1. Скачайте репозиторий:
    ```bash
-   curl -o setup.sh https://raw.githubusercontent.com/Treeteey/Telegram_Weather_Bot/refs/heads/main/setup.sh
+   git clone https://github.com/Treeteey/Telegram_Weather_Bot.git
    cd Telegram_Weather_Bot
    ```
 
 2. Создайте файл `.env` в корневой директории проекта со следующими переменными:
    ```
+   cp .env.example .env 
+
    BOT_TOKEN=your_telegram_bot_token
    WEATHER_API_KEY=your_openweathermap_api_key
    ALLOWED_CHAT_ID=your_telegram_chat_id
